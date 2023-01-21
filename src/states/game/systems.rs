@@ -108,7 +108,12 @@ pub fn scale_render_image(
     }
 }
 
-pub fn move_player(input: Res<Input<KeyCode>>, mut query: Query<(&mut Velocity), With<Player>>) {
+pub fn move_player(
+    mut commands: Commands,
+    input: Res<Input<KeyCode>>,
+    mut query: Query<(&mut Velocity), With<Player>>,
+    colliding_query: Query<&CollidingEntities, With<Player>>,
+) {
     for (mut velocity) in &mut query {
         let right = if input.pressed(KeyCode::D) { 1. } else { 0. };
         let left = if input.pressed(KeyCode::A) { 1. } else { 0. };
@@ -118,6 +123,19 @@ pub fn move_player(input: Res<Input<KeyCode>>, mut query: Query<(&mut Velocity),
         let down = if input.pressed(KeyCode::S) { 1. } else { 0. };
 
         velocity.linvel.y = (up - down) * 200.;
+    }
+    if input.just_pressed(KeyCode::E) {
+        for collider_entities in colliding_query.iter() {
+            println!("HER");
+            for collider in collider_entities.iter() {
+                if let Ok(item_type) = colliding_query.get_component::<Items>(collider) {
+                    match item_type {
+                        Items::GlassBottle => println!("Bottle"),
+                        _ => println!("Todo"),
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -458,13 +476,32 @@ pub fn fix_player_col(
         if let Ok(player) = player_query.get_single() {
             let rotation_constraints = LockedAxes::ROTATION_LOCKED;
             commands.get_entity(player).unwrap().insert(ColliderBundle {
-                collider: Collider::cuboid(16., 8.),
+                collider: Collider::cuboid(16., 16.),
                 rigid_body: RigidBody::Dynamic,
                 friction: Friction {
                     coefficient: 0.0,
                     combine_rule: CoefficientCombineRule::Min,
                 },
                 rotation_constraints,
+                ..Default::default()
+            });
+        }
+    }
+}
+
+pub fn add_item_col(
+    mut commands: Commands,
+    item_query: Query<Entity, With<ItemTag>>,
+    collider_query: Query<(&Collider), With<ItemTag>>,
+) {
+    if collider_query.is_empty() {
+        for item in item_query.iter() {
+            let rotation_constraints = LockedAxes::ROTATION_LOCKED;
+            commands.get_entity(item).unwrap().insert(SensorBundle {
+                collider: Collider::cuboid(8., 8.),
+                sensor: Sensor,
+                rotation_constraints,
+                active_events: ActiveEvents::COLLISION_EVENTS,
                 ..Default::default()
             });
         }

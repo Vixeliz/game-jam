@@ -7,6 +7,8 @@ use bevy::{
 use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, LdtkIntCell, Worldly};
 use bevy_rapier2d::prelude::*;
 
+use crate::states::game::components::Items;
+
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub enum GameState {
     Splashscreen,
@@ -79,6 +81,7 @@ pub struct PlayerBundle {
     // The whole EntityInstance can be stored directly as an EntityInstance component
     #[from_entity_instance]
     entity_instance: EntityInstance,
+    pub held_item: Items,
 }
 
 #[derive(AsBindGroup, TypeUuid, Clone)]

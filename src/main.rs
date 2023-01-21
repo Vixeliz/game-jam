@@ -14,13 +14,13 @@ use components::*;
 mod systems;
 use systems::*;
 mod states;
-use states::*;
+use states::{game::components::GlassBottle, *};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugin(TweeningPlugin)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(32.0))
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(16.0))
         .add_plugin(RapierDebugRenderPlugin::default())
         .insert_resource(RapierConfiguration {
             gravity: Vec2::new(0.0, 0.0),
@@ -49,6 +49,7 @@ fn main() {
         .add_system(menu::input.run_in_state(GameState::Menu))
         .add_system(game::systems::input.run_in_state(GameState::Game))
         .add_system(game::systems::fix_player_col.run_in_state(GameState::Game))
+        .add_system(game::systems::add_item_col.run_in_state(GameState::Game))
         .add_system(game::systems::spawn_wall_collision.run_in_state(GameState::Game))
         .add_system(game::systems::scale_render_image.run_in_state(GameState::Game))
         .add_system(game::systems::move_player.run_in_state(GameState::Game))
@@ -57,6 +58,7 @@ fn main() {
         .add_startup_system(systems::start)
         .add_system(print_current_state)
         .register_ldtk_entity::<PlayerBundle>("Player")
+        .register_ldtk_entity::<GlassBottle>("GlassBottle")
         .register_ldtk_int_cell::<WallBundle>(1)
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.1)))
         .insert_resource(InGame(false))
