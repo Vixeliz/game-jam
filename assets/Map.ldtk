@@ -11,7 +11,7 @@
 	"iid": "78e0f0f0-7820-11ed-91bd-bba009798a26",
 	"jsonVersion": "1.2.4",
 	"appBuildId": 464824,
-	"nextUid": 1,
+	"nextUid": 2,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "Free",
@@ -37,7 +37,27 @@
 	"tutorialDesc": null,
 	"customCommands": [],
 	"flags": [],
-	"defs": { "layers": [], "entities": [], "tilesets": [], "enums": [], "externalEnums": [], "levelFields": [] },
+	"defs": { "layers": [], "entities": [], "tilesets": [
+		{
+			"__cWid": 0,
+			"__cHei": 0,
+			"identifier": "Tileset",
+			"uid": 1,
+			"relPath": null,
+			"embedAtlas": null,
+			"pxWid": 0,
+			"pxHei": 0,
+			"tileGridSize": 16,
+			"spacing": 0,
+			"padding": 0,
+			"tags": [],
+			"tagsSourceEnumUid": null,
+			"enumTags": [],
+			"customData": [],
+			"savedSelections": [],
+			"cachedPixelData": null
+		}
+	], "enums": [], "externalEnums": [], "levelFields": [] },
 	"levels": [
 		{
 			"identifier": "Level_0",
