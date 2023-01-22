@@ -694,6 +694,7 @@ pub fn face_towards_cursor(
 pub fn cursor(mut commands: Commands, world_coords: Res<WorldMouseCoords>) {}
 
 pub fn create_collision_map(
+    mut commands: Commands,
     wall_query: Query<(&GridCoords), Added<Wall>>,
     mut path_map: ResMut<PathfindingMap>,
     mut astar_map: ResMut<AstarMap>,
@@ -707,19 +708,20 @@ pub fn create_collision_map(
                 if let Some(level) = ldtk_levels.get(level_handle) {
                     let grid_size_y = level.level.px_hei / 16;
                     let grid_size_x = level.level.px_wid / 16;
+                    let mut map = PathMap2d::new([
+                        grid_size_x.try_into().unwrap(),
+                        grid_size_y.try_into().unwrap(),
+                    ]);
+                    let astarm: AStar<[i32; 2]> = AStar::from_size([
+                        grid_size_x.try_into().unwrap(),
+                        grid_size_y.try_into().unwrap(),
+                    ]);
                     for wall in wall_query.iter() {
-                        path_map.path_map = PathMap2d::new([
-                            grid_size_x.try_into().unwrap(),
-                            grid_size_y.try_into().unwrap(),
-                        ]);
-                        astar_map.astar = AStar::from_size([
-                            grid_size_x.try_into().unwrap(),
-                            grid_size_y.try_into().unwrap(),
-                        ]);
-                        println!("Wall X: {}, Wall Y: {}", wall.x, wall.y);
-                        path_map.path_map.set_obstacle([wall.x, wall.y], true);
+                        map.set_obstacle([wall.x, wall.y], true);
                         path_map_initialized.0 = true;
                     }
+                    commands.insert_resource(PathfindingMap { path_map: map });
+                    commands.insert_resource(AstarMap { astar: astarm });
                 }
             }
         }
@@ -730,16 +732,53 @@ pub fn main_enemy_move(
     mut path_map: ResMut<PathfindingMap>,
     mut astar_map: ResMut<AstarMap>,
     mut main_enemy_query: Query<(&mut Transform, &mut Target, &mut TargetPath), With<MainEnemy>>,
+    level_query: Query<(&Handle<LdtkLevel>, &Transform), Without<MainEnemy>>,
+    mut level_selection: ResMut<LevelSelection>,
+    ldtk_levels: Res<Assets<LdtkLevel>>,
 ) {
     if let Ok((mut main_enemy_transform, mut enemy_target, mut enemy_path)) =
         main_enemy_query.get_single_mut()
     {
-        println!("{:?}", path_map.path_map.is_obstacle([9, 7]));
-        enemy_path.0 = astar_map
-            .astar
-            .find_path(&path_map.path_map, [9, 2], [8, 18])
-            .unwrap()
-            .to_vec();
-        // println!("{:?}", enemy_path.0);
+        let mut enemy_location = [0, 0];
+        for (level_handle, level_transform) in &level_query {
+            if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
+                if level_selection.is_match(&0, &ldtk_level.level) {
+                    let level_location = level_transform.translation;
+                    let level_size = Vec2 {
+                        x: ldtk_level.level.px_hei as f32,
+                        y: ldtk_level.level.px_wid as f32,
+                    };
+                    enemy_location = convert_world_to_grid(
+                        &level_location,
+                        &level_size,
+                        &Vec2 {
+                            x: main_enemy_transform.translation.x,
+                            y: main_enemy_transform.translation.y,
+                        },
+                    );
+                }
+            }
+        }
+        println!("{:?}", enemy_location);
+        // enemy_path.0 = astar_map
+        //     .astar
+        //     .find_path(&path_map.path_map, enemy_location, [8, 18])
+        //     .unwrap()
+        //     .to_vec();
+    }
+}
+
+fn convert_world_to_grid(level_location: &Vec3, level_size: &Vec2, target: &Vec2) -> [i32; 2] {
+    if target.x > level_location.x
+        && target.x < level_location.x + level_size.x
+        && target.y > level_location.y
+        && target.y < level_location.y + level_size.y
+    {
+        return [
+            (target.x - level_location.x / 16.) as i32,
+            (target.y - level_location.y / 16.) as i32,
+        ];
+    } else {
+        return [0, 0];
     }
 }
