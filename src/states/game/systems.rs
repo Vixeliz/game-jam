@@ -759,12 +759,11 @@ pub fn main_enemy_move(
                 }
             }
         }
-        println!("{:?}", enemy_location);
-        // enemy_path.0 = astar_map
-        //     .astar
-        //     .find_path(&path_map.path_map, enemy_location, [8, 18])
-        //     .unwrap()
-        //     .to_vec();
+        enemy_path.0 = astar_map
+            .astar
+            .find_path(&path_map.path_map, enemy_location, [8, 18])
+            .unwrap()
+            .to_vec();
     }
 }
 
@@ -775,8 +774,8 @@ fn convert_world_to_grid(level_location: &Vec3, level_size: &Vec2, target: &Vec2
         && target.y < level_location.y + level_size.y
     {
         return [
-            (target.x - level_location.x / 16.) as i32,
-            (target.y - level_location.y / 16.) as i32,
+            ((target.x - level_location.x) / 16.) as i32,
+            ((target.y - level_location.y) / 16.) as i32,
         ];
     } else {
         return [0, 0];

@@ -31,7 +31,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugin(TweeningPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(16.0))
-        .add_plugin(RapierDebugRenderPlugin::default())
+        // .add_plugin(RapierDebugRenderPlugin::default())
         .insert_resource(RapierConfiguration {
             gravity: Vec2::new(0.0, 0.0),
             ..Default::default()
