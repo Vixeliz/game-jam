@@ -26,26 +26,6 @@ pub struct ColliderBundle {
     pub density: ColliderMassProperties,
 }
 
-impl From<&EntityInstance> for ColliderBundle {
-    fn from(entity_instance: &EntityInstance) -> ColliderBundle {
-        let rotation_constraints = LockedAxes::ROTATION_LOCKED;
-
-        match entity_instance.identifier.as_ref() {
-            "Player" => ColliderBundle {
-                collider: Collider::cuboid(16., 32.),
-                rigid_body: RigidBody::Dynamic,
-                friction: Friction {
-                    coefficient: 0.0,
-                    combine_rule: CoefficientCombineRule::Min,
-                },
-                rotation_constraints,
-                ..Default::default()
-            },
-            _ => ColliderBundle::default(),
-        }
-    }
-}
-
 // Tags for all the different states
 #[derive(Component)]
 pub struct Splashscreen;
@@ -78,9 +58,6 @@ pub struct PlayerBundle {
     #[worldly]
     pub worldly: Worldly,
     #[bundle]
-    // The whole EntityInstance can be stored directly as an EntityInstance component
-    #[from_entity_instance]
-    entity_instance: EntityInstance,
     pub held_item: Items,
     pub colliding_entities: CollidingEntities,
     pub noise: NoiseValue,

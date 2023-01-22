@@ -633,6 +633,29 @@ pub fn fix_player_col(
     }
 }
 
+pub fn fix_enemy_col(
+    mut commands: Commands,
+    main_enemy_query: Query<Entity, With<MainEnemy>>,
+    collider_query: Query<(&Collider), With<MainEnemy>>,
+) {
+    if let Ok(collider) = collider_query.get_single() {
+    } else {
+        if let Ok(enemy) = main_enemy_query.get_single() {
+            let rotation_constraints = LockedAxes::ROTATION_LOCKED;
+            commands.get_entity(enemy).unwrap().insert(ColliderBundle {
+                collider: Collider::cuboid(8., 8.),
+                rigid_body: RigidBody::Dynamic,
+                friction: Friction {
+                    coefficient: 0.0,
+                    combine_rule: CoefficientCombineRule::Min,
+                },
+                rotation_constraints,
+                ..Default::default()
+            });
+        }
+    }
+}
+
 pub fn add_item_col(
     mut commands: Commands,
     item_query: Query<Entity, (With<ItemTag>, Without<Player>)>,
@@ -671,8 +694,9 @@ pub fn face_towards_cursor(
 pub fn cursor(mut commands: Commands, world_coords: Res<WorldMouseCoords>) {}
 
 pub fn create_collision_map(
-    wall_query: Query<(&GridCoords, &Parent), Added<Wall>>,
+    wall_query: Query<(&GridCoords), Added<Wall>>,
     mut path_map: ResMut<PathfindingMap>,
+    mut astar_map: ResMut<AstarMap>,
     mut path_map_initialized: ResMut<PathInit>,
     level_query: Query<(&Handle<LdtkLevel>, &Transform), Without<Player>>,
     ldtk_levels: Res<Assets<LdtkLevel>>,
@@ -684,21 +708,38 @@ pub fn create_collision_map(
                     let grid_size_y = level.level.px_hei / 16;
                     let grid_size_x = level.level.px_wid / 16;
                     for wall in wall_query.iter() {
-                        let mut map = PathMap2d::new([
+                        path_map.path_map = PathMap2d::new([
                             grid_size_x.try_into().unwrap(),
                             grid_size_y.try_into().unwrap(),
                         ]);
-                        let mut astar = AStar::from_size([
+                        astar_map.astar = AStar::from_size([
                             grid_size_x.try_into().unwrap(),
                             grid_size_y.try_into().unwrap(),
                         ]);
-                        map.set_obstacle([wall.0.x, wall.0.y], true);
-                        let path = astar.find_path(&map, [4, 4], [10, 10]).unwrap();
-                        println!("PATH: {:?}", path);
+                        println!("Wall X: {}, Wall Y: {}", wall.x, wall.y);
+                        path_map.path_map.set_obstacle([wall.x, wall.y], true);
                         path_map_initialized.0 = true;
                     }
                 }
             }
         }
+    }
+}
+
+pub fn main_enemy_move(
+    mut path_map: ResMut<PathfindingMap>,
+    mut astar_map: ResMut<AstarMap>,
+    mut main_enemy_query: Query<(&mut Transform, &mut Target, &mut TargetPath), With<MainEnemy>>,
+) {
+    if let Ok((mut main_enemy_transform, mut enemy_target, mut enemy_path)) =
+        main_enemy_query.get_single_mut()
+    {
+        println!("{:?}", path_map.path_map.is_obstacle([9, 7]));
+        enemy_path.0 = astar_map
+            .astar
+            .find_path(&path_map.path_map, [9, 2], [8, 18])
+            .unwrap()
+            .to_vec();
+        // println!("{:?}", enemy_path.0);
     }
 }

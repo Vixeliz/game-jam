@@ -17,7 +17,10 @@ use systems::*;
 mod states;
 use states::{
     game::{
-        components::{GlassBottle, Items, PathInit, PathfindingMap, WorldMouseCoords},
+        components::{
+            AstarMap, GlassBottle, Items, MainEnemyBundle, PathInit, PathfindingMap,
+            WorldMouseCoords,
+        },
         systems::unhide_cursor,
     },
     *,
@@ -58,6 +61,8 @@ fn main() {
         .add_system(game::systems::input.run_in_state(GameState::Game))
         .add_system(game::systems::aiming.run_in_state(GameState::Game))
         .add_system(game::systems::fix_player_col.run_in_state(GameState::Game))
+        .add_system(game::systems::fix_enemy_col.run_in_state(GameState::Game))
+        .add_system(game::systems::main_enemy_move.run_in_state(GameState::Game))
         .add_system(game::systems::add_item_col.run_in_state(GameState::Game))
         .add_system(game::systems::spawn_wall_collision.run_in_state(GameState::Game))
         .add_system(game::systems::cursor.run_in_state(GameState::Game))
@@ -71,6 +76,7 @@ fn main() {
         .add_startup_system(systems::start)
         .add_system(print_current_state)
         .register_ldtk_entity::<PlayerBundle>("Player")
+        .register_ldtk_entity::<MainEnemyBundle>("MainEnemy")
         .register_ldtk_entity::<GlassBottle>("GlassBottle")
         .register_ldtk_int_cell::<WallBundle>(1)
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.1)))
@@ -78,8 +84,10 @@ fn main() {
         .insert_resource(Items::GlassBottle)
         .insert_resource(WorldMouseCoords(Vec2 { x: 0.0, y: 0.0 }))
         .insert_resource(PathfindingMap {
-            path_map: PathMap2d::new([0, 0]),
-            astar: AStar::from_size([0, 0]),
+            path_map: PathMap2d::new([100, 100]),
+        })
+        .insert_resource(AstarMap {
+            astar: AStar::from_size([100, 100]),
         })
         .insert_resource(PathInit(false))
         .run()

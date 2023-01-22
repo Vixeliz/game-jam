@@ -1,6 +1,6 @@
 use bevy::prelude::*;
-use bevy_ecs_ldtk::{EntityInstance, IntGridCell, LdtkEntity, LdtkIntCell};
-use bevy_rapier2d::prelude::{ActiveEvents, Collider, LockedAxes, Sensor};
+use bevy_ecs_ldtk::{EntityInstance, IntGridCell, LdtkEntity, LdtkIntCell, Worldly};
+use bevy_rapier2d::prelude::{ActiveEvents, Collider, CollidingEntities, LockedAxes, Sensor};
 use sark_pathfinding::{AStar, PathMap2d};
 
 use crate::components::Game;
@@ -76,7 +76,38 @@ pub struct NoiseValue(f32);
 #[derive(Resource)]
 pub struct PathfindingMap {
     pub path_map: PathMap2d,
+}
+#[derive(Resource)]
+pub struct AstarMap {
     pub astar: AStar<[i32; 2]>,
 }
 #[derive(Resource)]
 pub struct PathInit(pub bool);
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
+pub struct Enemy;
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
+pub struct MainEnemy;
+
+#[derive(Default, Bundle, LdtkEntity)]
+pub struct MainEnemyBundle {
+    pub enemy_tag: MainEnemy,
+    #[sprite_bundle("player.png")]
+    #[bundle]
+    pub sprite_bundle: SpriteBundle,
+    game: Game,
+    #[worldly]
+    pub worldly: Worldly,
+    #[bundle]
+    pub held_item: Items,
+    pub colliding_entities: CollidingEntities,
+    pub current_target: Target,
+    pub target_path: TargetPath,
+}
+
+#[derive(Default, Component)]
+pub struct Target(Vec2);
+
+#[derive(Default, Component)]
+pub struct TargetPath(pub Vec<[i32; 2]>);
