@@ -1,0 +1,205 @@
+{
+  "version": "0.8.0-alpha.8.1",
+  "pan": {
+    "X": 34.121258,
+    "Y": 189.07771
+  },
+  "zoom": 0.6655643582344055,
+  "currentPage": 0,
+  "properties": {
+    "CacheDirectory": ""
+  },
+  "pages": [
+    {
+      "id": 0,
+      "pan": {
+        "X": 34.12125,
+        "Y": 189.07768
+      },
+      "zoom": 0.6655643582344055,
+      "cards": [
+        {
+          "id": 0,
+          "rect": {
+            "X": -96,
+            "Y": -96,
+            "W": 288,
+            "H": 32
+          },
+          "collapsed": "CollapsedShade",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 32,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Throwing",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 1,
+          "rect": {
+            "X": -96,
+            "Y": -64,
+            "W": 288,
+            "H": 32
+          },
+          "collapsed": "CollapsedShade",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 32,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Moving Enemy",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 2,
+          "rect": {
+            "X": -96,
+            "Y": -32,
+            "W": 288,
+            "H": 32
+          },
+          "collapsed": "CollapsedNone",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 32,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Fog",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 3,
+          "rect": {
+            "X": -96,
+            "Y": 0,
+            "W": 288,
+            "H": 64
+          },
+          "collapsed": "CollapsedNone",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 64,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Sound System and Prioity",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 4,
+          "rect": {
+            "X": -96,
+            "Y": 64,
+            "W": 288,
+            "H": 64
+          },
+          "collapsed": "CollapsedNone",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 64,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Player Stealth Mechanics",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 5,
+          "rect": {
+            "X": -96,
+            "Y": 128,
+            "W": 288,
+            "H": 32
+          },
+          "collapsed": "CollapsedNone",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 32,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Death",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 6,
+          "rect": {
+            "X": -96,
+            "Y": 160,
+            "W": 288,
+            "H": 64
+          },
+          "collapsed": "CollapsedNone",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 64,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Smaller Enemys(Can go through bushes",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 7,
+          "rect": {
+            "X": -96,
+            "Y": 224,
+            "W": 288,
+            "H": 32
+          },
+          "collapsed": "CollapsedNone",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 32,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Sound Effects",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 8,
+          "rect": {
+            "X": -96,
+            "Y": 256,
+            "W": 288,
+            "H": 32
+          },
+          "collapsed": "CollapsedNone",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 32,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Music",
+            "filepath": ""
+          }
+        },
+        {
+          "id": 9,
+          "rect": {
+            "X": -96,
+            "Y": 288,
+            "W": 288,
+            "H": 32
+          },
+          "collapsed": "CollapsedNone",
+          "uncollapsedSizeX": 288,
+          "uncollapsedSizeY": 32,
+          "contents": "Checkbox",
+          "properties": {
+            "checked": false,
+            "description": "Menu",
+            "filepath": ""
+          }
+        }
+      ]
+    }
+  ],
+  "savedimages": {}
+}
