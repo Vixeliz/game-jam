@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use bevy::prelude::*;
+use bevy::ecs::world;
 use bevy::render::camera::{self, RenderTarget, Viewport};
 use bevy::render::render_resource::{
     Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
@@ -8,6 +8,7 @@ use bevy::render::render_resource::{
 use bevy::render::texture::BevyDefault;
 use bevy::render::view::RenderLayers;
 use bevy::sprite::MaterialMesh2dBundle;
+use bevy::{asset, prelude::*};
 use bevy_ecs_ldtk::prelude::LayerInstance;
 use bevy_ecs_ldtk::{GridCoords, LdtkLevel, LdtkWorldBundle, LevelSelection};
 use bevy_rapier2d::prelude::*;
@@ -28,6 +29,49 @@ pub fn input(
         commands.insert_resource(NextState(GameState::Menu));
         ingame.0 = false;
     }
+}
+
+pub fn aiming(
+    mut windows: ResMut<Windows>,
+    q_camera: Query<(&Camera, &GlobalTransform), With<CameraTag>>,
+    mut world_coords: ResMut<WorldMouseCoords>,
+) {
+    // Games typically only have one window (the primary window).
+    // For multi-window applications, you need to use a specific window ID here.
+    // get the camera info and transform
+    // assuming there is exactly one main camera entity, so query::single() is OK
+    let (camera, camera_transform) = q_camera.single();
+
+    // get the window that the camera is displaying to (or the primary window)
+    let windows = if let RenderTarget::Window(id) = camera.target {
+        windows.get_mut(id).unwrap()
+    } else {
+        windows.get_primary_mut().unwrap()
+    };
+
+    // check if the cursor is inside the window and get its position
+    if let Some(screen_pos) = windows.cursor_position() {
+        // get the size of the window
+        let window_size = Vec2::new(windows.width() as f32, windows.height() as f32);
+
+        // convert screen position [0..resolution] to ndc [-1..1] (gpu coordinates)
+        let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
+
+        // matrix for undoing the projection and camera transform
+        let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix().inverse();
+
+        // use it to convert ndc to world-space coordinates
+        let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+
+        // reduce it to a 2D value
+        let world_pos: Vec2 = world_pos.truncate();
+        world_coords.0 = world_pos;
+    }
+}
+
+pub fn unhide_cursor(mut windows: ResMut<Windows>) {
+    let windows = windows.get_primary_mut().unwrap();
+    windows.set_cursor_visibility(true);
 }
 
 pub fn update_level_selection(
@@ -166,7 +210,16 @@ fn switch_item(
                     commands
                         .spawn((GlassBottle {
                             sprite_bundle: SpriteBundle {
-                                transform: *player_transform,
+                                transform: Transform {
+                                    translation: player_transform.translation,
+                                    rotation: Quat {
+                                        x: player_transform.rotation.x,
+                                        y: player_transform.rotation.y,
+                                        z: 0.0,
+                                        w: player_transform.rotation.w,
+                                    },
+                                    ..Default::default()
+                                },
                                 texture: asset_server.load("glass_bottle.png"),
                                 ..Default::default()
                             },
@@ -598,3 +651,20 @@ pub fn add_item_col(
         }
     }
 }
+
+pub fn face_towards_cursor(
+    mut player_query: Query<&mut Transform, (With<Player>, Without<ItemTag>)>,
+    world_coords: Res<WorldMouseCoords>,
+) {
+    if let Ok(mut player_transform) = player_query.get_single_mut() {
+        let diff = Vec3 {
+            x: world_coords.0.x,
+            y: world_coords.0.y,
+            z: 0.0,
+        } - player_transform.translation;
+        let angle = diff.y.atan2(diff.x) - 1.570796;
+        player_transform.rotation = Quat::from_axis_angle(Vec3::new(0.0, 0.0, 1.0), angle);
+    }
+}
+
+pub fn cursor(mut commands: Commands, world_coords: Res<WorldMouseCoords>) {}

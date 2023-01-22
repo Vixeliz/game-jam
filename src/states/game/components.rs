@@ -14,6 +14,12 @@ pub const SCREEN_WIDTH: u32 = 448;
 pub const SCREEN_HEIGHT: u32 = 256;
 pub const ASPECT_RATIO: f32 = SCREEN_WIDTH as f32 / SCREEN_HEIGHT as f32;
 
+#[derive(Component)]
+pub struct CursorTag;
+
+#[derive(Resource)]
+pub struct WorldMouseCoords(pub Vec2);
+
 #[derive(Clone, Component, Default, Debug, Copy, Resource, PartialEq, Eq)]
 pub enum Items {
     #[default]
