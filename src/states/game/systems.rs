@@ -729,14 +729,19 @@ pub fn create_collision_map(
 }
 
 pub fn main_enemy_move(
+    mut commands: Commands,
     mut path_map: ResMut<PathfindingMap>,
     mut astar_map: ResMut<AstarMap>,
-    mut main_enemy_query: Query<(&mut Transform, &mut Target, &mut TargetPath), With<MainEnemy>>,
+    mut main_enemy_query: Query<
+        (Entity, &mut Transform, &mut Target, &mut TargetPath),
+        With<MainEnemy>,
+    >,
+    mut velocity_query: Query<(&mut Velocity), With<MainEnemy>>,
     level_query: Query<(&Handle<LdtkLevel>, &Transform), Without<MainEnemy>>,
     mut level_selection: ResMut<LevelSelection>,
     ldtk_levels: Res<Assets<LdtkLevel>>,
 ) {
-    if let Ok((mut main_enemy_transform, mut enemy_target, mut enemy_path)) =
+    if let Ok((enemy_entity, mut main_enemy_transform, mut enemy_target, mut enemy_path)) =
         main_enemy_query.get_single_mut()
     {
         let mut enemy_location = [0, 0];
@@ -770,6 +775,34 @@ pub fn main_enemy_move(
             path_map.path_map.width().try_into().unwrap(),
             path_map.path_map.height().try_into().unwrap(),
         ]);
+        // println!("{:?}", path_map.path_map.is_obstacle([23, 16]));
+        // println!("{:?}", enemy_path.0);
+        for (mut velocity) in &mut velocity_query {
+            let right = if enemy_location[0] < enemy_path.0.get(1).unwrap()[0] {
+                1.
+            } else {
+                0.
+            };
+            let left = if enemy_location[0] > enemy_path.0.get(1).unwrap()[0] {
+                1.
+            } else {
+                0.
+            };
+
+            velocity.linvel.x = (right - left) * 200.;
+            let up = if enemy_location[0] < enemy_path.0.get(1).unwrap()[1] {
+                1.
+            } else {
+                0.
+            };
+            let down = if enemy_location[0] > enemy_path.0.get(1).unwrap()[1] {
+                1.
+            } else {
+                0.
+            };
+
+            velocity.linvel.y = (up - down) * 200.;
+        }
     }
 }
 
