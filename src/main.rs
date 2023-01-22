@@ -12,11 +12,12 @@ use iyes_loopless::prelude::*;
 mod components;
 use components::*;
 mod systems;
+use sark_pathfinding::{AStar, PathMap2d};
 use systems::*;
 mod states;
 use states::{
     game::{
-        components::{GlassBottle, Items, WorldMouseCoords},
+        components::{GlassBottle, Items, PathInit, PathfindingMap, WorldMouseCoords},
         systems::unhide_cursor,
     },
     *,
@@ -62,6 +63,7 @@ fn main() {
         .add_system(game::systems::cursor.run_in_state(GameState::Game))
         .add_system(game::systems::scale_render_image.run_in_state(GameState::Game))
         .add_system(game::systems::move_player.run_in_state(GameState::Game))
+        .add_system(game::systems::create_collision_map.run_in_state(GameState::Game))
         .add_system(game::systems::face_towards_cursor.run_in_state(GameState::Game))
         .add_system(game::systems::show_held_item.run_in_state(GameState::Game))
         .add_system(game::systems::update_level_selection.run_in_state(GameState::Game))
@@ -75,5 +77,10 @@ fn main() {
         .insert_resource(InGame(false))
         .insert_resource(Items::GlassBottle)
         .insert_resource(WorldMouseCoords(Vec2 { x: 0.0, y: 0.0 }))
+        .insert_resource(PathfindingMap {
+            path_map: PathMap2d::new([0, 0]),
+            astar: AStar::from_size([0, 0]),
+        })
+        .insert_resource(PathInit(false))
         .run()
 }

@@ -7,7 +7,7 @@ use bevy::{
 use bevy_ecs_ldtk::{EntityInstance, LdtkEntity, LdtkIntCell, Worldly};
 use bevy_rapier2d::prelude::*;
 
-use crate::states::game::components::Items;
+use crate::states::game::components::{Items, NoiseValue};
 
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub enum GameState {
@@ -83,6 +83,7 @@ pub struct PlayerBundle {
     entity_instance: EntityInstance,
     pub held_item: Items,
     pub colliding_entities: CollidingEntities,
+    pub noise: NoiseValue,
 }
 
 #[derive(AsBindGroup, TypeUuid, Clone)]
