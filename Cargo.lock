@@ -1536,6 +1536,7 @@ dependencies = [
  "bevy_rapier2d",
  "bevy_tweening",
  "iyes_loopless",
+ "sark_pathfinding",
 ]
 
 [[package]]
@@ -2763,6 +2764,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "sark_pathfinding"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8658ec1986db8e8a375280ed89b628edc852f819392e0309fe7978b5ddd0f870"
+dependencies = [
+ "ahash",
+ "arrayvec",
+ "glam",
+ "smallvec",
 ]
 
 [[package]]

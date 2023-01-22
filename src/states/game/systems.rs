@@ -13,6 +13,7 @@ use bevy_ecs_ldtk::prelude::LayerInstance;
 use bevy_ecs_ldtk::{GridCoords, LdtkLevel, LdtkWorldBundle, LevelSelection};
 use bevy_rapier2d::prelude::*;
 use iyes_loopless::state::NextState;
+use sark_pathfinding::*;
 
 use crate::components::{
     ColliderBundle, Game, GameState, InGame, Player, PostProcessingMaterial, Wall,
@@ -619,7 +620,7 @@ pub fn fix_player_col(
         if let Ok(player) = player_query.get_single() {
             let rotation_constraints = LockedAxes::ROTATION_LOCKED;
             commands.get_entity(player).unwrap().insert(ColliderBundle {
-                collider: Collider::cuboid(16., 16.),
+                collider: Collider::cuboid(8., 8.),
                 rigid_body: RigidBody::Dynamic,
                 friction: Friction {
                     coefficient: 0.0,
@@ -668,3 +669,36 @@ pub fn face_towards_cursor(
 }
 
 pub fn cursor(mut commands: Commands, world_coords: Res<WorldMouseCoords>) {}
+
+pub fn create_collision_map(
+    wall_query: Query<(&GridCoords, &Parent), Added<Wall>>,
+    mut path_map: ResMut<PathfindingMap>,
+    mut path_map_initialized: ResMut<PathInit>,
+    level_query: Query<(&Handle<LdtkLevel>, &Transform), Without<Player>>,
+    ldtk_levels: Res<Assets<LdtkLevel>>,
+) {
+    if path_map_initialized.0 != true {
+        for (level_handle, level_transform) in &level_query {
+            if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
+                if let Some(level) = ldtk_levels.get(level_handle) {
+                    let grid_size_y = level.level.px_hei / 16;
+                    let grid_size_x = level.level.px_wid / 16;
+                    for wall in wall_query.iter() {
+                        let mut map = PathMap2d::new([
+                            grid_size_x.try_into().unwrap(),
+                            grid_size_y.try_into().unwrap(),
+                        ]);
+                        let mut astar = AStar::from_size([
+                            grid_size_x.try_into().unwrap(),
+                            grid_size_y.try_into().unwrap(),
+                        ]);
+                        map.set_obstacle([wall.0.x, wall.0.y], true);
+                        let path = astar.find_path(&map, [4, 4], [10, 10]).unwrap();
+                        println!("PATH: {:?}", path);
+                        path_map_initialized.0 = true;
+                    }
+                }
+            }
+        }
+    }
+}

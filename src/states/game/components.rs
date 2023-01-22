@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_ecs_ldtk::{EntityInstance, IntGridCell, LdtkEntity, LdtkIntCell};
 use bevy_rapier2d::prelude::{ActiveEvents, Collider, LockedAxes, Sensor};
+use sark_pathfinding::{AStar, PathMap2d};
 
 use crate::components::Game;
 
@@ -68,3 +69,14 @@ impl From<EntityInstance> for Items {
         }
     }
 }
+
+#[derive(Component, Default)]
+pub struct NoiseValue(f32);
+
+#[derive(Resource)]
+pub struct PathfindingMap {
+    pub path_map: PathMap2d,
+    pub astar: AStar<[i32; 2]>,
+}
+#[derive(Resource)]
+pub struct PathInit(pub bool);
