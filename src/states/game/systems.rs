@@ -113,6 +113,9 @@ pub fn move_player(
     input: Res<Input<KeyCode>>,
     mut query: Query<(&mut Velocity), With<Player>>,
     colliding_query: Query<&CollidingEntities, With<Player>>,
+    player_query: Query<(Entity, &Items, &Transform), With<Player>>,
+    items_query: Query<(Entity, &Items), (With<ItemTag>, With<Collider>)>,
+    asset_server: Res<AssetServer>,
 ) {
     for (mut velocity) in &mut query {
         let right = if input.pressed(KeyCode::D) { 1. } else { 0. };
@@ -126,15 +129,95 @@ pub fn move_player(
     }
     if input.just_pressed(KeyCode::E) {
         for collider_entities in colliding_query.iter() {
-            println!("HER");
             for collider in collider_entities.iter() {
-                if let Ok(item_type) = colliding_query.get_component::<Items>(collider) {
-                    match item_type {
-                        Items::GlassBottle => println!("Bottle"),
-                        _ => println!("Todo"),
+                if let Ok((item_entity, item_type)) = items_query.get(collider) {
+                    if let Ok((player, player_item, player_transform)) = player_query.get_single() {
+                        switch_item(
+                            item_type,
+                            &mut commands,
+                            player,
+                            player_item,
+                            item_entity,
+                            player_transform,
+                            &asset_server,
+                        );
+                        return;
                     }
                 }
             }
+        }
+    }
+}
+
+fn switch_item(
+    item_type: &Items,
+    mut commands: &mut Commands,
+    player: Entity,
+    player_item: &Items,
+    item_entity: Entity,
+    player_transform: &Transform,
+    asset_server: &Res<AssetServer>,
+) {
+    match item_type {
+        Items::None => println!("Not implemented"),
+        _ => {
+            match player_item {
+                Items::GlassBottle => {
+                    commands
+                        .spawn((GlassBottle {
+                            sprite_bundle: SpriteBundle {
+                                transform: *player_transform,
+                                texture: asset_server.load("glass_bottle.png"),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        },))
+                        .insert(Items::GlassBottle);
+                    commands.insert_resource(Items::GlassBottle);
+                }
+                Items::None => {
+                    println!("No Item!");
+                    commands.insert_resource(Items::None);
+                }
+                _ => println!("Todo"),
+            }
+            commands.get_entity(player).unwrap().insert(*item_type);
+            commands.get_entity(item_entity).unwrap().despawn();
+        }
+    }
+}
+
+pub fn show_held_item(
+    mut commands: Commands,
+    mut commands2: Commands,
+    asset_server: Res<AssetServer>,
+    player_query: Query<(Entity, &Items, &Children), With<Player>>,
+    previous_child_query: Query<(Entity), (With<ItemTag>, Without<Collider>)>,
+    last_item: Res<Items>,
+) {
+    if let Ok((player, player_item, player_children)) = player_query.get_single() {
+        if last_item.into_inner() != player_item {
+            if let Ok(previous_child) = previous_child_query.get_single() {
+                commands.get_entity(previous_child).unwrap().despawn();
+            }
+            //TODO: Replace hardcoded path with a match that will set a string to correct image
+            let child_sprite = commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_translation(Vec3 {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
+                    }),
+                    texture: asset_server.load("glass_bottle.png"),
+                    ..Default::default()
+                },
+                ItemTag,
+                Player,
+            ));
+            commands2
+                .get_entity(player)
+                .unwrap()
+                .add_child(child_sprite.id());
         }
     }
 }
@@ -491,11 +574,12 @@ pub fn fix_player_col(
 
 pub fn add_item_col(
     mut commands: Commands,
-    item_query: Query<Entity, With<ItemTag>>,
+    item_query: Query<Entity, (With<ItemTag>, Without<Player>)>,
     collider_query: Query<(&Collider), With<ItemTag>>,
 ) {
-    if collider_query.is_empty() {
-        for item in item_query.iter() {
+    for item in item_query.iter() {
+        if let Ok(col) = collider_query.get(item) {
+        } else {
             let rotation_constraints = LockedAxes::ROTATION_LOCKED;
             commands.get_entity(item).unwrap().insert(SensorBundle {
                 collider: Collider::cuboid(8., 8.),

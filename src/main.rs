@@ -14,7 +14,10 @@ use components::*;
 mod systems;
 use systems::*;
 mod states;
-use states::{game::components::GlassBottle, *};
+use states::{
+    game::components::{GlassBottle, Items},
+    *,
+};
 
 fn main() {
     App::new()
@@ -53,6 +56,7 @@ fn main() {
         .add_system(game::systems::spawn_wall_collision.run_in_state(GameState::Game))
         .add_system(game::systems::scale_render_image.run_in_state(GameState::Game))
         .add_system(game::systems::move_player.run_in_state(GameState::Game))
+        .add_system(game::systems::show_held_item.run_in_state(GameState::Game))
         .add_system(game::systems::update_level_selection.run_in_state(GameState::Game))
         .add_system(game::systems::camera_fit_inside_current_level.run_in_state(GameState::Game))
         .add_startup_system(systems::start)
@@ -62,5 +66,6 @@ fn main() {
         .register_ldtk_int_cell::<WallBundle>(1)
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.1)))
         .insert_resource(InGame(false))
+        .insert_resource(Items::GlassBottle)
         .run()
 }

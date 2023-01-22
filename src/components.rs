@@ -68,7 +68,7 @@ pub struct WallBundle {
     wall: Wall,
 }
 
-#[derive(Clone, Default, Bundle, LdtkEntity)]
+#[derive(Default, Bundle, LdtkEntity)]
 pub struct PlayerBundle {
     pub player_tag: Player,
     #[sprite_bundle("player.png")]
@@ -82,6 +82,7 @@ pub struct PlayerBundle {
     #[from_entity_instance]
     entity_instance: EntityInstance,
     pub held_item: Items,
+    pub colliding_entities: CollidingEntities,
 }
 
 #[derive(AsBindGroup, TypeUuid, Clone)]

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_ecs_ldtk::{IntGridCell, LdtkEntity, LdtkIntCell};
+use bevy_ecs_ldtk::{EntityInstance, IntGridCell, LdtkEntity, LdtkIntCell};
 use bevy_rapier2d::prelude::{ActiveEvents, Collider, LockedAxes, Sensor};
 
 use crate::components::Game;
@@ -14,7 +14,7 @@ pub const SCREEN_WIDTH: u32 = 448;
 pub const SCREEN_HEIGHT: u32 = 256;
 pub const ASPECT_RATIO: f32 = SCREEN_WIDTH as f32 / SCREEN_HEIGHT as f32;
 
-#[derive(Clone, Component, Default)]
+#[derive(Clone, Component, Default, Debug, Copy, Resource, PartialEq, Eq)]
 pub enum Items {
     #[default]
     None,
@@ -42,22 +42,23 @@ pub struct SensorBundle {
 #[derive(Component)]
 pub struct HeldItem(u32);
 
-#[derive(Bundle, Clone, LdtkEntity)]
+#[derive(Bundle, Default, Clone, LdtkEntity)]
 pub struct GlassBottle {
     pub interactable: InteractableItem,
     #[sprite_bundle("glass_bottle.png")]
     #[bundle]
     pub sprite_bundle: SpriteBundle,
+    #[from_entity_instance]
     pub item: Items,
+    #[from_entity_instance]
+    pub entity_instance: EntityInstance,
 }
 
-impl Default for GlassBottle {
-    fn default() -> GlassBottle {
-        let default_bottle: GlassBottle = GlassBottle {
-            interactable: InteractableItem::default(),
-            sprite_bundle: SpriteBundle::default(),
-            item: Items::GlassBottle,
-        };
-        default_bottle
+impl From<EntityInstance> for Items {
+    fn from(entity_instance: EntityInstance) -> Items {
+        match entity_instance.identifier.as_ref() {
+            "GlassBottle" => Items::GlassBottle,
+            _ => Items::None,
+        }
     }
 }
