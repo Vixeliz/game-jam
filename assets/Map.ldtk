@@ -619,7 +619,7 @@
 						},
 						{
 							"__identifier": "MainEnemy",
-							"__grid": [8,61],
+							"__grid": [9,58],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -628,7 +628,7 @@
 							"width": 16,
 							"height": 16,
 							"defUid": 17,
-							"px": [137,991],
+							"px": [153,943],
 							"fieldInstances": []
 						}
 					]

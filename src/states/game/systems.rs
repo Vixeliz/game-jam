@@ -620,7 +620,7 @@ pub fn fix_player_col(
         if let Ok(player) = player_query.get_single() {
             let rotation_constraints = LockedAxes::ROTATION_LOCKED;
             commands.get_entity(player).unwrap().insert(ColliderBundle {
-                collider: Collider::cuboid(8., 8.),
+                collider: Collider::ball(8.),
                 rigid_body: RigidBody::Dynamic,
                 friction: Friction {
                     coefficient: 0.0,
@@ -643,7 +643,7 @@ pub fn fix_enemy_col(
         if let Ok(enemy) = main_enemy_query.get_single() {
             let rotation_constraints = LockedAxes::ROTATION_LOCKED;
             commands.get_entity(enemy).unwrap().insert(ColliderBundle {
-                collider: Collider::cuboid(8., 8.),
+                collider: Collider::ball(8.),
                 rigid_body: RigidBody::Dynamic,
                 friction: Friction {
                     coefficient: 0.0,
@@ -737,71 +737,86 @@ pub fn main_enemy_move(
         With<MainEnemy>,
     >,
     mut velocity_query: Query<(&mut Velocity), With<MainEnemy>>,
-    level_query: Query<(&Handle<LdtkLevel>, &Transform), Without<MainEnemy>>,
+    level_query: Query<(&Handle<LdtkLevel>, &Transform), (Without<MainEnemy>, Without<Player>)>,
     mut level_selection: ResMut<LevelSelection>,
     ldtk_levels: Res<Assets<LdtkLevel>>,
+    player_query: Query<&Transform, (With<Player>, Without<MainEnemy>, Without<ItemTag>)>,
 ) {
     if let Ok((enemy_entity, mut main_enemy_transform, mut enemy_target, mut enemy_path)) =
         main_enemy_query.get_single_mut()
     {
-        let mut enemy_location = [0, 0];
-        for (level_handle, level_transform) in &level_query {
-            if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
-                if level_selection.is_match(&0, &ldtk_level.level) {
-                    let level_location = level_transform.translation;
-                    let level_size = Vec2 {
-                        x: ldtk_level.level.px_hei as f32,
-                        y: ldtk_level.level.px_wid as f32,
-                    };
-                    enemy_location = convert_world_to_grid(
-                        &level_location,
-                        &level_size,
-                        &Vec2 {
-                            x: main_enemy_transform.translation.x,
-                            y: main_enemy_transform.translation.y,
-                        },
-                    );
+        if let Ok(player_transform) = player_query.get_single() {
+            let mut enemy_location = [0, 0];
+            let mut player_location = [0, 0];
+            for (level_handle, level_transform) in &level_query {
+                if let Some(ldtk_level) = ldtk_levels.get(level_handle) {
+                    if level_selection.is_match(&0, &ldtk_level.level) {
+                        let level_location = level_transform.translation;
+                        let level_size = Vec2 {
+                            x: ldtk_level.level.px_hei as f32,
+                            y: ldtk_level.level.px_wid as f32,
+                        };
+                        enemy_location = convert_world_to_grid(
+                            &level_location,
+                            &level_size,
+                            &Vec2 {
+                                x: main_enemy_transform.translation.x,
+                                y: main_enemy_transform.translation.y,
+                            },
+                        );
+                        player_location = convert_world_to_grid(
+                            &level_location,
+                            &level_size,
+                            &Vec2 {
+                                x: player_transform.translation.x,
+                                y: player_transform.translation.y,
+                            },
+                        );
+                    }
                 }
             }
-        }
-        let backup_vector_path: Vec<[i32; 2]> = vec![[0, 0]];
-        enemy_path.0 = astar_map
-            .astar
-            .find_path(&path_map.path_map, enemy_location, [8, 18])
-            .unwrap_or_else(|| &&backup_vector_path)
-            .to_vec();
-        astar_map.astar.clear();
-        astar_map.astar = AStar::from_size([
-            path_map.path_map.width().try_into().unwrap(),
-            path_map.path_map.height().try_into().unwrap(),
-        ]);
-        // println!("{:?}", path_map.path_map.is_obstacle([23, 16]));
-        // println!("{:?}", enemy_path.0);
-        for (mut velocity) in &mut velocity_query {
-            let right = if enemy_location[0] < enemy_path.0.get(1).unwrap()[0] {
-                1.
-            } else {
-                0.
-            };
-            let left = if enemy_location[0] > enemy_path.0.get(1).unwrap()[0] {
-                1.
-            } else {
-                0.
-            };
 
-            velocity.linvel.x = (right - left) * 200.;
-            let up = if enemy_location[0] < enemy_path.0.get(1).unwrap()[1] {
-                1.
-            } else {
-                0.
-            };
-            let down = if enemy_location[0] > enemy_path.0.get(1).unwrap()[1] {
-                1.
-            } else {
-                0.
-            };
+            let backup_vector_path: Vec<[i32; 2]> = vec![[0, 0]];
+            enemy_path.0 = astar_map
+                .astar
+                .find_path(&path_map.path_map, enemy_location, player_location)
+                .unwrap_or_else(|| &&backup_vector_path)
+                .to_vec();
+            astar_map.astar.clear();
+            astar_map.astar = AStar::from_size([
+                path_map.path_map.width().try_into().unwrap(),
+                path_map.path_map.height().try_into().unwrap(),
+            ]);
+            if let Ok((mut velocity)) = velocity_query.get_single_mut() {
+                let right = if enemy_location[0] < enemy_path.0.get(1).unwrap_or(&enemy_location)[0]
+                {
+                    1.
+                } else {
+                    0.
+                };
+                let left = if enemy_location[0] > enemy_path.0.get(1).unwrap_or(&enemy_location)[0]
+                {
+                    1.
+                } else {
+                    0.
+                };
 
-            velocity.linvel.y = (up - down) * 200.;
+                velocity.linvel.x = (right - left) * 100.;
+                let up = if enemy_location[1] < enemy_path.0.get(1).unwrap_or(&enemy_location)[1] {
+                    1.
+                } else {
+                    0.
+                };
+                let down = if enemy_location[1] > enemy_path.0.get(1).unwrap_or(&enemy_location)[1]
+                {
+                    1.
+                } else {
+                    0.
+                };
+
+                velocity.linvel.y = (up - down) * 100.;
+                // main_enemy_transform.rotate_z(up.atan2(down));
+            }
         }
     }
 }

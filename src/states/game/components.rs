@@ -93,7 +93,7 @@ pub struct MainEnemy;
 #[derive(Default, Bundle, LdtkEntity)]
 pub struct MainEnemyBundle {
     pub enemy_tag: MainEnemy,
-    #[sprite_bundle("player.png")]
+    #[sprite_bundle("main_enemy.png")]
     #[bundle]
     pub sprite_bundle: SpriteBundle,
     game: Game,
