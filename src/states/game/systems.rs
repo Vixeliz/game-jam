@@ -173,11 +173,9 @@ fn switch_item(
                             ..Default::default()
                         },))
                         .insert(Items::GlassBottle);
-                    commands.insert_resource(Items::GlassBottle);
                 }
                 Items::None => {
                     println!("No Item!");
-                    commands.insert_resource(Items::None);
                 }
                 _ => println!("Todo"),
             }
@@ -191,24 +189,32 @@ pub fn show_held_item(
     mut commands: Commands,
     mut commands2: Commands,
     asset_server: Res<AssetServer>,
-    player_query: Query<(Entity, &Items, &Children), With<Player>>,
+    player_query: Query<(Entity, &Items), With<Player>>,
     previous_child_query: Query<(Entity), (With<ItemTag>, Without<Collider>)>,
     last_item: Res<Items>,
 ) {
-    if let Ok((player, player_item, player_children)) = player_query.get_single() {
+    if let Ok((player, player_item)) = player_query.get_single() {
         if last_item.into_inner() != player_item {
             if let Ok(previous_child) = previous_child_query.get_single() {
                 commands.get_entity(previous_child).unwrap().despawn();
             }
+            commands.insert_resource(*player_item);
+            let item_path = match player_item {
+                Items::GlassBottle => "glass_bottle.png",
+                Items::None => {
+                    return;
+                }
+                _ => "missing.png",
+            };
             //TODO: Replace hardcoded path with a match that will set a string to correct image
             let child_sprite = commands.spawn((
                 SpriteBundle {
                     transform: Transform::from_translation(Vec3 {
-                        x: 0.0,
+                        x: 8.0,
                         y: 0.0,
-                        z: 0.0,
+                        z: 4.0,
                     }),
-                    texture: asset_server.load("glass_bottle.png"),
+                    texture: asset_server.load(item_path),
                     ..Default::default()
                 },
                 ItemTag,
@@ -218,6 +224,7 @@ pub fn show_held_item(
                 .get_entity(player)
                 .unwrap()
                 .add_child(child_sprite.id());
+            println!("Showing New Item");
         }
     }
 }
